@@ -1,0 +1,3 @@
+Imi trec toate testele daca comentez linia 40 din test.c passed("Insert"); care e un printf, orice tip de
+printf as pune in acea pozitie imi da peste cap ultimul element din vector. Sigur pentru ca nu returnez
+vectorul in functia insert chiar daca ii dau realloc, dar functia e de tip void asa ca nu pot face asta.

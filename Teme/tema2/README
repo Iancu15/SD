@@ -1,0 +1,200 @@
+# Iancu Alexandru-Gabriel 314CD
+
+TASK I. Arbori de intervale
+
+1. create_tree
+	Primeste ca parametrii extremele arborelui de intervale si de asemenea un
+pointer la dimensiunea intervalului pe care il voi incrementa succesiv in
+functie.
+	
+	Aloc memorie pentru nodul curent si intervalul acestuia. Setez informatia
+nodului la 0 pentru a jongla usor cu ea la cerintele urmatoare. Ii dau drept
+capete de interval parametrii si apoi incrementez dimensiunea.
+
+	Daca capatul stang e mai mic decat cel drept continui (singurul caz in care
+nu va fi mai mic va fi atunci cand capetele sunt egale => frunza). Iau un mijloc
+si parcurg recursiv copiii oferindu-le jumatate din intervalul parintelui.
+
+2. construieste_arbore
+	Aloc memoria pentru arbore si introduc datele aferente arborelui: functii,
+valoarea predefinita(default 0, dar oricum n-am folosit-o asa ca nu prea 
+conteaza) si dimensiunea acestuia initial 0. Iau un pointer ce va stoca adresa 
+dimensiunii arborelui si il folosesc in functia de la create_tree.
+
+3. actualizare_interval_pentru_nod
+	Daca nodul e NULL inseamna ca am trecut de frunze si oprim acel apel.
+Altfel actualizam nodul curent si daca acesta e complet inclus in intervalul 
+dat drept parametru, atunci ne oprim. Daca nu este inclus actualizam recursiv 
+si copiii acestuia daca nu se indeparteaza prea mult de interval.
+
+4. interogare_interval_pentru_nod
+	Daca nodul e NULL am iesit din arbore si ne oprim in apelul curent. Daca
+am gasit un nod complet inclus atunci returnam informatia stocata in urma
+actualizarilor. Altfel contiuam pe acelasi drum pe care l-am lua la actualizare.
+Daca in cel putin unul dintre subarbori nu se gaseste nimic, atunci by default 
+valoarea din acel subarbore va fi 0. Adunam rezultatele din subarbori prin
+intermediul functiei de combinare a arborelui si o returnam pentru a fi folosita
+de nodul parinte.
+
+TASK II. Intersectii
+
+1. citeste_intrare
+	Aloc memorie pentru lista si iau un pointer la fisier pentru citire text. 
+O sa ma folosesc exclusiv de fscanf sa citesc din fisier. Citesc lista de
+dimensiuni si aloc memorie pentru fiecare element din vectorul lista si pentru
+punctele sale aferente, apoi introduc coordonatele din fisier catre punctele
+recent alocate.
+
+2. calculeaza_numar_intersectii (netrivial)
+	Parcurg intervalele din lista pentru a afla y_max. Pentru intervalele
+orizontale y-ul pentru ambele puncte o sa fie acelasi, iar pentru cele
+verticale y-ul punctului drept o sa fie mai mare asa ca ma voi raporta
+exclusiv la y-ul punctului drept.
+
+	Creez un arbore de intervale cu noduri ce au intervalele incluse in
+[0 y_max]. Aloc apoi pentru un vector de puncte in care voi introduce toate 
+punctele din intervale indeferent daca sunt puncte stanga sau dreapta. Pe 
+pozitiile pare voi pune punctele stanga si pe cele impare voi pune punctele 
+dreapta. Nu ma voi folosi de aceasta calitate pentru ca oricum o sa le ordonez 
+si o sa se strice proprietatea, e folositor doar pentru introducerea de puncte. 
+
+	Punctele sunt o structura formata din 4 numere intregi:
+	-x = coordonata x a punctului
+	-y = coordonata y a punctului
+	-index = index-ul din lista al intervalului din care facea parte 
+	-type = tipul punctului(punct stanga/dreapta = 0/1)
+
+	Sortez vectorul de puncte folosindu-ma de qsort. N-am creat un vector
+de pointeri la puncte pentru ca qsort n-ar fi functionat corespunzator. Am
+creat o functie auxiliara de comparare pentru qsort denumita comparepoints.
+Aceasta primeste ca parametru 2 pointeri, qsort se foloseste de adresele 
+elementelor in loc de elementele in sine. Castez void-urile la structura Punct *
+pentru ca si parametrii sunt de tip pointer. Fac scaderea coordonatelor x pentru
+a avea o functie de comparare ce va fi folosita de qsort pentru a ordona
+punctele dupa x (<0 - punctul a trebuie la stanga lui b, =0 nu conteaza, >0
+punctul a trebuie la dreapta lui b | ordonarea e crescatoare).
+
+	Parcurg punctele si daca intervalul din care provine e orizontal atunci voi
+salva intr-o structura de tip interval capetele [y y], unde y este coordonata
+y a punctului. Daca punctul e de tip 0(stanga) => actualizare cu +1, altfel
+(dreapta) actualizare cu -1. Se actualizeaza cu +1 pentru ca linia de baleiere
+a ajuns in dreptul intervalului orizontal respectiv, se va actualiza cu -1
+pentru ca a parasit proximitatea intervalului (a trecut de punctul dreapta al
+intervalului).
+
+	Daca intervalul este vertical voi introduce in structura interval capetele
+[y0 y1], unde y0 este coordonata y a punctului stang, respectiv y1 a punctului
+drept. In urma ordonarii tuturor punctelor dupa x, punctele ce apartineau
+aceluiasi interval vertical ajung consecutive in vectorul de puncte pentru ca
+au aceeasi coordonata x(de asemenea sunt ordonate intre ele in functie de tip =>
+intai e punctul stanga apoi cel drept). Interoghez intervalul [y0 y1] in
+arborele de intervale si voi afla numarul de intersectii ale liniei verticale
+cu cele orizontale. Va fi mereu maxim 1 punct intersectat intre 2 intervale
+perpendiculare. Linia de baleiere stie ce intervale orizontale inca nu s-au
+terminat si automat unele dintre acestea vor fi cele cu care se intersecteaza
+intervalul vertical(acelea care au coordonata y in [y0 y1]). Insumez la fiecare
+pas numarul de intersectii pentru fiecare interval vertical scanat si returnez
+rezultatul la final de functie.
+
+3. calculeaza_numar_intersectii_trivial
+	Compar intervale 2 cate 2 pe baza conceptului de la selection sort => O(n^2)
+	Voi verifica pentru fiecare interval daca este orizontal sau nu, pentru
+asta ma voi folosi de o functie auxiliara care verifica acest lucru(cea folosita
+si la netrivial). Pentru ca voi folosi acest rezultat in mai multe conditii
+il salvez intr-o variabila pentru a nu il calcula fara rost de mai multe ori.
+
+	Daca doua interval sunt perpendiculare => au punct comun. Pentru ca un
+punct sa fie comun celor doua intervale ar trebui sa se respecte doua conditii:
+	-coordonata y a intervalului orizontal sa se afle intre cele doua coordonate
+y ale intervalului vertical;
+	-coordonata x a intervalului vertical sa se afle intre cele doua coordonate
+x ale intervalului orizontal.
+	Fiecare conditie este verificata prin intermediul functiei it_contains care
+primeste o axa('y' sau 'x') si verifica pentru acele coordonate daca intervalul
+cu index-ul i are acea coordonata intre cele doua ale intervalului cu index-ul
+j. Daca se respecta ambele conditii inseamna ca exista un punct comun si cresc
+numarul de puncte de intersectie gasite.
+
+	Celelalte cazuri sunt cele in care intervalele sunt ambele verticale sau
+ambele orizontale caz in care o sa fie 0, 1 sau o infinitate de puncte comune.
+In varianta anterioara a codului sursa am testat si pentru acest caz luand in
+considerare doar punctele pentru care coordonatele sunt numere intregi. Insa am
+considerat codul redundant si l-am eliminat.
+
+TASK III. Pozitie libera
+
+1. citeste_fisier_in
+	Aloc memorie pentru structa date_intrare si pentru un pointer la fisier
+in modul citire text. Citesc cu fscanf numarul de intrari si numarul max din
+lista. Aloc memorie pentru vectorul de elemente si citesc valorile din fisier.
+
+2. calculeaza_vector_raspuns (netrivial)
+	Creez o noua lista cu nr_max + 1 elemente si un arbore cu extremele
+[1 nr_max] (toate elementele incep de la 1). Am scris o functie de actualizare
+si am folosit o functie min pentru a "combina" elementele. Parcurg elementele 
+din lista citita.
+	
+	Pentru fiecare element creez un interval [y y], unde y reprezinta intrarea
+curenta din vectorul de date. Initial sa vorbesc despre functia de actualizare
+pentru +1/-1 ce reprezinta al doilea if. Daca nodul e neinitializat il voi
+initializa la valorea capatului drept de interval(e neinitializat cand e 0).
+Altfel scad valoarea pentru a tine cont de faptul ca am trecut pe acea
+cale pentru a pune elementul curent pe o pozitie(se scade valoarea pentru
+poz_act = -1) si daca cumva nodul avea nod->info egal cu 1 si devine 0
+dupa scadere il fac -1 sa nu fie confundat cu un nod neinitializat. In caz
+ca nodul nu are unde sa fie introdus atunci fac actualizarea cu poz_act = +1
+pentru a aduce arborele la forma initiala inainte de verificarea pentru acel
+element.
+	
+	Fac interogarea pentru acelasi interval si daca pe pozitia din lista gasita
+de interogare nu se afla niciun element(este egala cu 0), atunci pun elementul
+gasit in acel loc. Altfel o sa incep de la cel mai apropiat stramos(parinte)
+si pana la cel mai indepartat stramos(root) pana gasesc un loc neocupat in
+nod->info-urile acestora sau pana ce am ajuns la o valoarea mai mica sau egala
+cu 1. Pentru a intelege mai bine ce face while-ul trebuie sa discutam despre
+primul if din functia de actualizare care se intampla pentru poz_act > 1.
+
+	Pentru poz_act = 2 daca nodul nu este frunza si diferenta de capete de 
+interval este mai mica sau egala decat 3 * (2 - 1) = 3 atunci se apeleaza 
+functia de actualizare a copiilor. Practic aceste noduri sunt cele care fie sunt 
+stramosi de gradul 2 pentru frunzele de pe cel mai jos nivel, fie sunt stramosi 
+de gradul 1(parinti) pentru frunzele de pe penultimul nivel. Prin actualizarile
+cu -1 de la inceput de for de la fiecare iteratie s-a tinut cont de ce elemente
+au ocupat ce pozitii, astfel cand un element ocupa o pozitie nodurile din
+vecinatatea acestuia vor tine cont de cel mai apropiat posibil 0(loc liber) de
+frunzele vecine(copii). Cand poz_act > 1 si ne aflam in frunze nu se va intampla
+nimic(asta e rostul else if-ului). In caz ca nu s-a gasit atunci j = 3 => 
+poz_act = 3 => se face interogarea in nodurile cu lungime mai mica sau egala
+decat 3 * 2 = 6 => un strat mai sus prin stramosi, in exemplul nostru pentru ca
+nr_max este in majoritatea testelor 7 se va testa root-ul si daca nici in
+acel caz nu s-a gasit un loc liber, atunci fie prima pozitie e libera, fie
+nu mai sunt locuri libere. In conditia while-ului testez si pentru
+rezultatul interogarii sa fie mai mare decat 1 pentru ca aveam un caz in care
+un 2 nu voia sa ocupe prima pozitie pentru ca root-ul avea nod->info egal cu 1.
+Astfel iau caz separat pentru prirma pozitie pentru ca programul se comporta
+ciudat cand vine vorba de ocuparea pozitie 0 desi am incercat din rasputeri
+sa tratez problema prin numere negative.
+
+	Dupa ce s-a trecut de while daca cumva s-a oprit pentru ca s-a gasit un loc 
+liber atunci il ocup, altfel daca s-a oprit pentru ca interogarea a dat 1 sau 
+mai putin atunci verific daca prima pozitie e ocupata si daca nu e o ocup.
+Daca nu mai e niciun loc liber in proxemitate inseamna ca nu il pun nicaieri si
+astfel trebuie sa actualizez arborele cu +1 pentru a acoperi urmele lasate de 
+acesta in urma verificarii. Functia are o complexitate de O(n*(logn)^2), 
+n-ul de la for, un logn de la while cand nu se gaseste din prima(primele dati 
+se vor gasi automat din prima) si va trebui sa fie parcurs pe nivele arborele 
+de jos in sus(pe o anumita directie) si cum lungimea arborelui tinde sa fie 
+maxim logn(ajuta intr-un fel si structura arborelui de intervale) atunci 
+complexitatea va fi logn, iar in cazul actualizarii si interogarii se parcurge 
+din nou arborele partial de unde rezulta tot o complexitate logaritmica. Am 
+incercat sa fac complexitatea de O(n*logn), dar erau mult prea multe cazuri care 
+nu puteau fi tratate printr-o singura cuantificare a interogarii. Insa 
+O(n*(logn)^2) este mult mai bun decat complexitatea de O(n^2) de la metoda 
+triviala pentru n > 1(adica mereu pentru ca n reprezinta numarul de elemente).
+
+3. calculeaza_vector_raspuns_trivial
+	Aloc memorie pentru noua lista si parcurg elementele vechii liste. Daca
+pe pozitia egala cu elementul din noua lista nu se afla nimic(este egala cu 0),
+atunci il adaug. Altfel parcurg de sus in jos fiecare pozitie incepand cu cea
+de sub pozitia elementului deja verificat. Daca gasesc un loc liber, il ocup
+si ies din al doilea for. Cum aceasta metoda foloseste 2 for-uri => O(n^2).
